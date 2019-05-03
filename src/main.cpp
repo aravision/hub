@@ -1,3 +1,4 @@
+#define BUILTIN_LED 2
 #include <Arduino.h>
 #include <DNSServer.h>
 #include <WebServer.h>
@@ -10,6 +11,9 @@
 
 #define CURRENT_VERSION VERSION
 #define CLOUD_FUNCTION_URL "http://us-central1-aravision.cloudfunctions.net/getDownloadUrl"
+
+WiFiClient client;
+WebServer server(80);
 
 /* 
  * Check if needs to update the device and returns the download url.
@@ -58,6 +62,95 @@ String getDownloadUrl()
 }
 
 /* 
+ * Download binary image and use Update library to update the device.
+ */
+bool downloadUpdate(String url)
+{
+  HTTPClient http;
+  USE_SERIAL.print("[HTTP] Download begin...\n");
+
+  http.begin(url);
+
+  USE_SERIAL.print("[HTTP] GET...\n");
+  // start connection and send HTTP header
+  int httpCode = http.GET();
+  if (httpCode > 0)
+  {
+    // HTTP header has been send and Server response header has been handled
+    USE_SERIAL.printf("[HTTP] GET... code: %d\n", httpCode);
+
+    // file found at server
+    if (httpCode == HTTP_CODE_OK)
+    {
+
+      int contentLength = http.getSize();
+      USE_SERIAL.println("contentLength : " + String(contentLength));
+
+      if (contentLength > 0)
+      {
+        bool canBegin = Update.begin(contentLength);
+        if (canBegin)
+        {
+          WiFiClient stream = http.getStream();
+          USE_SERIAL.println("Begin OTA. This may take 2 - 5 mins to complete. Things might be quite for a while.. Patience!");
+          size_t written = Update.writeStream(stream);
+
+          if (written == contentLength)
+          {
+            USE_SERIAL.println("Written : " + String(written) + " successfully");
+          }
+          else
+          {
+            USE_SERIAL.println("Written only : " + String(written) + "/" + String(contentLength) + ". Retry?");
+          }
+
+          if (Update.end())
+          {
+            USE_SERIAL.println("OTA done!");
+            if (Update.isFinished())
+            {
+              USE_SERIAL.println("Update successfully completed. Rebooting.");
+              ESP.restart();
+              return true;
+            }
+            else
+            {
+              USE_SERIAL.println("Update not finished? Something went wrong!");
+              return false;
+            }
+          }
+          else
+          {
+            USE_SERIAL.println("Error Occurred. Error #: " + String(Update.getError()));
+            return false;
+          }
+        }
+        else
+        {
+          USE_SERIAL.println("Not enough space to begin OTA");
+          client.flush();
+          return false;
+        }
+      }
+      else
+      {
+        USE_SERIAL.println("There was no content in the response");
+        client.flush();
+        return false;
+      }
+    }
+    else
+    {
+      return false;
+    }
+  }
+  else
+  {
+    return false;
+  }
+}
+
+/* 
  * Show current device version
  */
 void handleRoot()
@@ -69,7 +162,7 @@ void setup()
 {
   Serial.begin(115200);
   Serial.setDebugOutput(true);
-  pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(BUILTIN_LED, OUTPUT);
 
   delay(3000);
   Serial.println("\n Starting");
@@ -80,7 +173,7 @@ void setup()
   WiFiManager wm;
   WiFiManagerParameter versionText(version.c_str());
   wm.addParameter(&versionText);
-  
+
   if (!wm.autoConnect("Robotics", "nopebook"))
   {
     Serial.println("failed to connect and hit timeout");
