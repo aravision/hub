@@ -11,7 +11,6 @@
 #define CURRENT_VERSION VERSION
 #define CLOUD_FUNCTION_URL "http://us-central1-aravision.cloudfunctions.net/getDownloadUrl"
 
-
 /* 
  * Check if needs to update the device and returns the download url.
  */
@@ -58,12 +57,73 @@ String getDownloadUrl()
   return downloadUrl;
 }
 
+/* 
+ * Show current device version
+ */
+void handleRoot()
+{
+  server.send(200, "text/plain", "v" + String(CURRENT_VERSION));
+}
+
 void setup()
 {
-  // put your setup code here, to run once:
+  Serial.begin(115200);
+  Serial.setDebugOutput(true);
+  pinMode(LED_BUILTIN, OUTPUT);
+
+  delay(3000);
+  Serial.println("\n Starting");
+  // Setup Wifi Manager
+  String version = String("<p>Current Version - v") + String(CURRENT_VERSION) + String("</p>");
+  USE_SERIAL.println(version);
+
+  WiFiManager wm;
+  WiFiManagerParameter versionText(version.c_str());
+  wm.addParameter(&versionText);
+  
+  if (!wm.autoConnect("Robotics", "nopebook"))
+  {
+    Serial.println("failed to connect and hit timeout");
+    //reset and try again, or maybe put it to deep sleep
+    ESP.restart();
+    delay(1000);
+  }
+
+  // Check if we need to download a new version
+  String downloadUrl = getDownloadUrl();
+  if (downloadUrl.length() > 0)
+  {
+    bool success = downloadUpdate(downloadUrl);
+    if (!success)
+    {
+      USE_SERIAL.println("Error updating device");
+    }
+  }
+
+  server.on("/", handleRoot);
+  server.begin();
+  USE_SERIAL.println("HTTP server started");
+
+  USE_SERIAL.print("IP address: ");
+  USE_SERIAL.println(WiFi.localIP());
 }
+
+int ledState = LOW;
+const long interval = 1000;
+unsigned long previousMillis = 0;
 
 void loop()
 {
-  // put your main code here, to run repeatedly:
+
+  unsigned long currentMillis = millis();
+
+  if (currentMillis - previousMillis >= interval)
+  {
+    previousMillis = currentMillis;
+    ledState = ledState == LOW ? HIGH : LOW;
+    digitalWrite(BUILTIN_LED, ledState);
+  }
+
+  // Just chill
+  server.handleClient();
 }
