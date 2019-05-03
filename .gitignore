@@ -1,6 +1,6 @@
 
-# Created by https://www.gitignore.io/api/macos,platformio
-# Edit at https://www.gitignore.io/?templates=macos,platformio
+# Created by https://www.gitignore.io/api/macos,platformio,visualstudiocode
+# Edit at https://www.gitignore.io/?templates=macos,platformio,visualstudiocode
 
 ### macOS ###
 # General
@@ -36,4 +36,15 @@ Temporary Items
 .clang_complete
 .gcc-flags.json
 
-# End of https://www.gitignore.io/api/macos,platformio
+### VisualStudioCode ###
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+### VisualStudioCode Patch ###
+# Ignore all local history of files
+.history
+
+# End of https://www.gitignore.io/api/macos,platformio,visualstudiocode
