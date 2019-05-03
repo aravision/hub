@@ -1,6 +1,0 @@
-{
-    "terminal.integrated.env.osx": {
-        "PATH": "/Users/meyerzinn/.platformio/penv/bin:/Users/meyerzinn/.platformio/penv:/Users/meyerzinn/anaconda3/bin:/Users/meyerzinn/anaconda3/condabin:/Users/meyerzinn/.yarn/bin:/Users/meyerzinn/.config/yarn/global/node_modules/.bin:/Users/meyerzinn/google-cloud-sdk/bin:/Users/meyerzinn/.gimme/versions/go1.11.5.darwin.amd64/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/TeX/texbin:/usr/local/go/bin:/usr/local/share/dotnet:/Applications/tahoe.app/bin/:/opt/X11/bin:~/.dotnet/tools:/Library/Frameworks/Mono.framework/Versions/Current/Commands:/Applications/Postgres.app/Contents/Versions/latest/bin:/Applications/Xamarin Workbooks.app/Contents/SharedSupport/path-bin:/usr/local/rvm/bin:/Users/meyerzinn/go/bin:/Users/meyerzinn/dev/flutter/bin",
-        "PLATFORMIO_CALLER": "vscode"
-    }
-}
